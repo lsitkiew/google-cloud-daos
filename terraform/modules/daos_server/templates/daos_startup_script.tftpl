@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance/attributes"
 DAOS_SERVER_SYSTEMD_FILE="/usr/lib/systemd/system/daos_server.service"
 DAOS_CONFIG_DIR="/etc/daos"
@@ -48,5 +50,29 @@ $${DAOS_DIR}/cert_gen/sm_get_ca.sh "${daos_ca_secret_id}" "server"
 
 systemctl enable daos_server
 systemctl start daos_server
+
+systemctl enable daos_agent
+systemctl start daos_agent
+
+if [[ "$${HOSTNAME}" == "$${FIRST_DAOS_SERVER_HOSTNAME}" ]]; then
+  until dmg network scan | grep --fixed-strings "${servers}"
+  do
+    # Wait for servers to start
+    sleep 5
+  done
+  echo "All DAOS Servers started"
+
+  echo "Formatting storage on servers: ${servers}"
+  dmg storage format
+  dmg system query -v
+
+  echo "Create pool"
+  dmg pool create -z "1TB" --label="io500_pool"
+  echo "Pool created successfully"
+
+  echo "Create container"
+  daos container create --type=POSIX --label="io500_cont" "io500_pool"
+  echo "Container created successfully"
+fi
 
 echo "END: DAOS Server Startup Script"
