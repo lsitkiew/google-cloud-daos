@@ -64,6 +64,8 @@ locals {
       first_server      = local.first_server
       daos_ca_secret_id = local.daos_ca_secret_id
       allow_insecure    = local.allow_insecure
+      instances		= var.number_of_instances
+      pools             = var.pools
     }
   )
 
@@ -71,7 +73,6 @@ locals {
     "${path.module}/templates/configure_daos.tftpl",
     {
       servers = local.servers
-      pools   = var.pools
     }
   )
 
