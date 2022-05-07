@@ -17,8 +17,8 @@
 locals {
   os_project         = var.os_project != null ? var.os_project : var.project_id
   subnetwork_project = var.subnetwork_project != null ? var.subnetwork_project : var.project_id
-  servers            = format("%s-[%04s-%04s]", var.instance_base_name, 1, var.number_of_instances)
   first_server       = format("%s-%04s", var.instance_base_name, 1)
+  servers            = var.number_of_instances == 1 ? local.first_server : format("%s-[%04s-%04s]", var.instance_base_name, 1, var.number_of_instances)
   max_aps            = var.number_of_instances > 5 ? 5 : (var.number_of_instances % 2) == 1 ? var.number_of_instances : var.number_of_instances - 1
   access_points      = formatlist("%s-%04s", var.instance_base_name, range(1, local.max_aps + 1))
   scm_size           = var.daos_scm_size
